@@ -11,9 +11,6 @@ library(ggraph)
 library(ggrepel)
 library(viridis)
 
-#February 12 2020
-#for the paper, Yael wants us to try to form a lincRNA lincRNA network 
-
 #all DE lincRNA
 load(file = paste0("/Bigdata/Dropbox (Technion Dropbox)/Rina_Benel/Home/Rina/AS_linc/cardiac_diff/data/deseq2/updatedPadjTSLnormFiltLRT_linc.RData"))
 
