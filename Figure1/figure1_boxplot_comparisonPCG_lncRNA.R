@@ -75,12 +75,6 @@ proteinCoding <- data.frame(type = "protein_coding", proteinCoding)
 
 TotalGenes.df <- do.call(rbind, list(lincRNAgenes, proteinCoding))
 
-#Attention!!
-##Here we can use this for either day 60 or day 1 for the paper just 
-##change the "day" to the type perfered
-
-#July 26th 2021- add plot of all the days?
-#TotalGenes.df <- TotalGenes.df[, colnames(TotalGenes.df) %in% c("type","day60")]
 
 #to find out the counts of each group for the legend of the boxplot
 table(TotalGenes.df$type)
@@ -94,8 +88,6 @@ TotalGenes.long <- TotalGenes.df %>% tidyr::gather(days, count, 3:ncol(TotalGene
 TotalGenes.long$days <-factor(TotalGenes.long$days, levels=c("day0", "day1", "day2", "day3", "day4", "day5", "day6",
                                                        "day8", "day15", "day30", "day60"))
 
-#if only showing a single day
-#TotalGenes.long$days <-factor(TotalGenes.long$days, levels=c("day60"))
 
 #stat test before we add pvalues to plot 
 #this will give us the option to add manual pvalues, bec the padj and the ns dont show 
