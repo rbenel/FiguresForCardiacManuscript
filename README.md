@@ -23,6 +23,6 @@
 #heatmap lincRNA expression:
 #Step1:figure1_importSalmonTranscriptResults.R 
 #Step2:figure1_LRT_timeseries_deseq2.R
-#Step3:
+#Step3:figure1_differential_analysis_deseq2.R
 #Step4: 
 
