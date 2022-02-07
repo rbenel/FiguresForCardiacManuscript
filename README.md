@@ -1,11 +1,11 @@
 
-#FiguresForManuscript
+# FiguresForManuscript
 
 This repo will contain all scripts used to produce the figures found in the manuscript
 
-#Figure 1
+# Figure 1
 
-##PCA plot: 
+## PCA plot: 
 Step1: figure1_importSalmonTranscriptResults.R 
 Step2: figure1_exploratory_visualization_PCA_heatmap.R
 
