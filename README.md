@@ -20,7 +20,7 @@ Step1:`figure1_violinplot_GloballincRNAexpression.R`
 Step1:`figure1_PointPlotSum_lincRNA.R`
 
 ## Volcano plot lincRNA day0 v. day60:
-step1:`figure1_VolcanoPlot_lincRNAlabeled.R`
+Step1:`figure1_VolcanoPlot_lincRNAlabeled.R`
 
 ## Heatmap lincRNA expression:
 Step1:`figure1_importSalmonTranscriptResults.R` 
