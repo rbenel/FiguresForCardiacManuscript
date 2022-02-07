@@ -1,8 +1,6 @@
 library(dplyr)
 library(tidyr)
-library(pheatmap)
 library(reshape)
-library(data.table)
 library(ggplot2)
 library(tidyverse)
 library(corrr)
