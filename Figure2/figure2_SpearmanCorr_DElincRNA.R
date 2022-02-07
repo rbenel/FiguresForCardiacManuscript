@@ -1,15 +1,6 @@
-library(dplyr)
-library(tidyr)
 library(pheatmap)
-library(reshape)
 library(data.table)
-library(ggplot2)
-library(tidyverse)
 library(corrr)
-library(igraph)
-library(ggraph)
-library(ggrepel)
-library(viridis)
 
 #all DE lincRNA
 load(file = paste0("/Bigdata/Dropbox (Technion Dropbox)/Rina_Benel/Home/Rina/AS_linc/cardiac_diff/data/deseq2/updatedPadjTSLnormFiltLRT_linc.RData"))
@@ -124,7 +115,6 @@ my.colors <- list(cluster = heatmapColors,
 ########################
 #Annotation (continued)
 ########################
-
 lincRNAheatmapColored <- pheatmap(correlation_spearman ,
                            scale = "none",
                            cutree_rows = numClusters,
