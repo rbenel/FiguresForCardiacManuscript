@@ -21,23 +21,21 @@ load(file = "/Bigdata/Dropbox (Technion Dropbox)/Rina_Benel/Home/Rina/Practice 1
 ##################################
 #Spearman Correlation all lincRNA
 ##################################
-#spearman correlation 
+
 correlation_spearman <-cor(t(norm_FC_lincRNA), t(norm_FC_lincRNA),  method = c("spearman"))
 
-#This is the same thing
-# cor(t(norm_FC_lincRNA), method = "spearman")
-
+#turn into a matrix 
 correlation_spearman = as.matrix(correlation_spearman)
 
+#color scheme (blue/red)
 color <- colorRampPalette(c("#579af2", "white", "#cc1a35"))
 
+#view the distribution of the scores 
 hist <- hist(correlation_spearman, breaks=20, xlab= "Correlation Values", main="Distribution of Spearman Correlation",
              col= color(20))
 
 pheatmap(correlation_spearman ,
-         # breaks = seq(from=-thr, to=thr, length=101),
          scale = "none",
-         #kmeans_k = 4,
          border_color = NA,
          clustering_method = "complete",
          cluster_cols = T,
@@ -55,12 +53,13 @@ pheatmap(correlation_spearman ,
 
 #save(correlation_spearman, file = paste0("/Bigdata/Dropbox (Technion Dropbox)/Rina_Benel/Home/Rina/AS_linc/cardiac_diff/results/salmon10.1_results/Correlation/lincRNA_lincRNAnetwork/April20_lincRNA_lincRNA_CorrScores.RData"))
 
-#Added on May 5 2021
 ############################
-#Clustering and annotations
+#Heatmap with Clusters
 ############################
-#Make some visual changes to the heatmap 
+#Cut the graph into X number of clusters and add annotations  
 numClusters <- 5
+
+#heatmap with clusters and annotations 
 lincRNAheatmap <- pheatmap(correlation_spearman ,
                    # breaks = seq(from=-thr, to=thr, length=101),
                    scale = "none",
@@ -78,27 +77,26 @@ lincRNAheatmap <- pheatmap(correlation_spearman ,
                    treeheight_row = 20,
                    treeheight_col = 0,
                    color = colorRampPalette(rev(RColorBrewer::brewer.pal(10, "RdBu")))(256),
-                   main = "Correlation of DE lincRNAs"
-          )
+                   main = "Correlation of DE lincRNAs")
+      
 
-####################
-#Heatmap Annotation 
-###################
+############
+#Annotation 
+############
 #cut the heatmap tree
 heatmapCutree <- cutree(lincRNAheatmap$tree_row, k = numClusters)
 
-#on May 30th 2021 - turn into letters so less confusing in text
+#turn into letters so less confusing in text
 heatmapCutree <- sapply(heatmapCutree, function(i) toupper(letters[i]))
 
-
-#choose colors for the heatmap 
+#choose colors for the annotations of the clusters 
 heatmapColors <- RColorBrewer::brewer.pal(5, 'Set2')
 
 #annotated df of rownames + name of cluster 
 annotHeatmap <- data.frame(cluster = paste("cluster", heatmapCutree, sep = "_"))
 rownames(annotHeatmap) <- rownames(correlation_spearman)
 
-#create a df with functional and lincRNA
+#create a df with functional and lincRNA to add as an annotation 
 FunctionalLincRNA <- subset(Tx.lncRNAfunctional, Tx.lncRNAfunctional$tx_biotype == "lincRNA")
 
 #see how many are in each cluster
@@ -107,13 +105,14 @@ table(annotHeatmap)
 #how many are functional
 length(intersect(rownames(annotHeatmap), Tx.lncRNAfunctional$gene_id))
 
-#add functional to be part of the annnotation DF
+#add functional to be part of the annotation DF
 annotHeatmap$functional <- as.factor(ifelse(rownames(annotHeatmap) %in% Tx.lncRNAfunctional$gene_id, "func", ""))
 
 #annotHeatmap$functional <- relevel(annotHeatmap$functional, ref = 0)
-#assing colors to functional 
+#assign colors to functional 
 functionalColors = c( "white", "black")
 
+#look at the table of the annotation
 table(annotHeatmap)
 
 #add colors to the genes 
@@ -122,12 +121,12 @@ names(functionalColors) <- unique(annotHeatmap$functional)
 my.colors <- list(cluster = heatmapColors,
                   functional = functionalColors)
 
-
+########################
+#Annotation (continued)
+########################
 
 lincRNAheatmapColored <- pheatmap(correlation_spearman ,
-                           # breaks = seq(from=-thr, to=thr, length=101),
                            scale = "none",
-                           #kmeans_k = 4,
                            cutree_rows = numClusters,
                            border_color = NA,
                            clustering_method = "complete",
@@ -146,41 +145,5 @@ lincRNAheatmapColored <- pheatmap(correlation_spearman ,
                            color = colorRampPalette(rev(RColorBrewer::brewer.pal(10, "RdBu")))(256),
                            main = "Correlation of DE lincRNAs")
 
-#save the output for Yael 
 #add the gene names 
 annotHeatmap$genename <- Tx.lincRNA$gene_name[match(rownames(annotHeatmap), Tx.lincRNA $gene_id)]
-
-#run this before so that the save is being printed to the right thing. 
-
-dev.off()
-for (i in toupper(letters[1:5])){
-  print(i)
-  IndividualCluster <- subset(annotHeatmap, annotHeatmap$cluster == paste0("cluster_", i))
-  #write.csv(IndividualCluster, file = paste0("/Bigdata/Dropbox (Technion Dropbox)/Rina_Benel/Home/Rina/AS_linc/cardiac_diff/results/salmon10.1_results/Correlation/lincRNA_lincRNAnetwork/IndivudalClusterLists/", "cluster", i),
-  #          row.names = TRUE, quote = F)
-  
-  smallHeatmap <- norm_FC_lincRNA[rownames(norm_FC_lincRNA) %in% rownames(IndividualCluster), ]
-  
-  print(i)
-  tiff(file = paste0("/Bigdata/Dropbox (Technion Dropbox)/Rina_Benel/Home/Rina/AS_linc/cardiac_diff/results/salmon10.1_results/Correlation/lincRNA_lincRNAnetwork/IndivudalClusterLists/", "HeatmapOfCluster", i, ".tiff"))
-  
-  print(i)
-  ClusterHeatmap <- pheatmap(smallHeatmap ,
-           # breaks = seq(from=-thr, to=thr, length=101),
-           scale = "row",
-           #kmeans_k = 4,
-           border_color = NA,
-           clustering_method = "complete",
-           cluster_cols = F,
-           cluster_rows = T,
-           show_rownames = F,
-           show_colnames = T,
-           cellwidth = NA,
-           cellheight = NA,
-           revC = F,
-           treeheight_row = 20,
-           treeheight_col = 0,
-           color = colorRampPalette(rev(RColorBrewer::brewer.pal(10, "RdBu")))(256),
-           main = paste("Expression of Cluster", i))
-  dev.off()
-}
