@@ -25,3 +25,14 @@
 #Step2:figure1_LRT_timeseries_deseq2.R
 #Step3:figure1_normalizedCounts_heatmap.R
 
+#############
+#Figure 2
+###########
+#Heatmap of all DE lincRNA
+#Step 1: figure2_SpearmanCorr_DElincRNA.R
+
+#Network of DE lincRNA with correlation score of 0.9 with one another 
+#Step 1: figure2_networkFor_DElincRNA.R
+
+#Topological Attributes for the DE lincRNA Network 
+#Step 1: 
