@@ -49,3 +49,27 @@ Step 2: `XLmhg.py` --> Python script since the package is a Python package
 
 ### Individual Hubs
 Step 1: `figure2_IndividualNetwokrsForHubs_lincRNA_lincRNA.R`
+
+## Figure 3 
+
+### Heatmap of all DE lincRNA transcripts 
+
+### GOchord plot of lincRNA transcripts 
+
+### Table Summary of lincRNA transcript switches 
+
+### Anecdotic examples of lincRNA switches 
+
+## Figure 4 
+
+### Fuzzy Clustering of DE lincRNAs and TFs 
+
+### Barplots of TFs and lincRNA in each cluster 
+
+### Number of lincRNAs highly correlated with the TF markers 
+
+### Network of TF markers with highly correlated lincRNAs 
+
+### Results of a hypergeometric test for each TF marker with ChIP data
+
+### Anecdotic examples of TF markers bidning to lincRNAs found in high correlation 
