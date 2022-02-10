@@ -15,16 +15,18 @@ library(ggrepel)
 library(viridis)
 library(RColorBrewer)
 
-#load top degree output
-#load(file = paste0("/Bigdata/Dropbox (Technion Dropbox)/Rina_Benel/Home/Rina/AS_linc/cardiac_diff/results/salmon10.1_results/Correlation/lincRNA_lincRNAnetwork/networkFeatures/OnlyTopDegree/", "0.9", "Top", "10", "perc", ".RData"))
-
-#April 2020: updated lnc lincRNA and funcLincRNA annotations
+#load data
+#updated lnc lincRNA and funcLincRNA annotations
 load(file = paste0("/Bigdata/Dropbox (Technion Dropbox)/Rina_Benel/Home/Rina/Practice 18.12.16/data/Tx.linc_lncRNA_FunctlncRNA_release92TSL.RData"))
 
-#decided to represent these three lincRNAs
+#decided to represent these three lincRNAs as hubs 
 ManuallyCuratedHubs <- c("ENSG00000251562", "ENSG00000225783", "ENSG00000249669")
 HubGeneNames <- c("MALAT1", "MIAT", "CARMN")
-#HubColors <- c("#D6604D", "#4393C3", "#D6604D")
+
+
+################
+#Arrange colors
+################
 
 #if we want to color the edges and not the nodes we need this 
 RedColor <- brewer.pal(n = 9, name = "Reds")
@@ -50,10 +52,10 @@ CARMNlabelsGeneName <- c("CARMN", "LINC01290", "BX255923.1", "C1orf143", "LINC00
 
 NodeGeneNames <- list(MALATlabelsGeneName, MIATlabelsGeneName, CARMNlabelsGeneName)
 
-########
-#GRAPH?
-########
-#February 12th 2020 -> Make a Graph of Heatmap all lincRNA & lincRNA correlations
+#####################
+#Correlation scores
+######################
+#An individual network of lincRNA & lincRNA correlations for hubs 
 #see here for instructions 
 #in the example they use correlate and stretch(), which removes Nas and the upper triangle
 #https://drsimonj.svbtle.com/how-to-create-correlation-network-plots-with-corrr-and-ggraph
@@ -79,106 +81,53 @@ CleanReshape_upperDiag <- na.omit(reshape_upperDiag)
 #now we want only the groups that are over 0.9? 
 sigCorr_diag <- subset(CleanReshape_upperDiag, corScore >= 0.9)
 
+#see table of lincRNAs
 table(sigCorr_diag$first_lincRNA)
 
-################
-#Filter Network
-################
-#filter the graph and save mutliple options
+#for reproducible work 
 set.seed(12345)
-#top 1% degrees 
-#Hubs <- c(rownames(OnlyTopDegree))
 
-#not reporducible merging fromfigure_graphs_delincRNA for resDF  - yael wants list of hubs with up and down
-# HubsDEres <- subset(res_df, rownames %in% Hubs)
-# Top5percHubsUpDown <- merge(OnlyTopDegree, HubsDEres, by = "row.names")
-# write.csv(Top5percHubsUpDown, file = "/Bigdata/Dropbox (Technion Dropbox)/Rina_Benel/Home/Rina/AS_linc/cardiac_diff/results/salmon10.1_results/Correlation/lincRNA_lincRNAnetwork/top1_hubs/Top10percHubsUpDown.csv", 
-#           row.names = F)
+
 
 for(i in c(1:3)){
   
-  # #On June 8th I added this... see explanation
-  # #create output to manually chose labels and to label them this might be more reproducible?
-  
+  #Filter the correlation data to include only the correlations with the specific hub we chose
   HubCorrelations <- as_tibble(reshape_upperDiag) %>%
                     dplyr::filter((first_lincRNA == ManuallyCuratedHubs[i] & corScore >= 0.9) |
                     (second_lincRNA == ManuallyCuratedHubs[i] & corScore >= 0.9))
-  #change to external name so yael can chose the labels
+  
+  #add the gene names to the lincRNAs which will be used afterwards for labels 
   HubCorrelations$first_lincRNA <- Tx.lincRNA[match(HubCorrelations$first_lincRNA,
                                               Tx.lincRNA[['gene_id']] ), 'gene_name']
-  #change to external name so yael can chose the labels
+  #add the gene names to the lincRNAs which will be used afterwards for labels 
   HubCorrelations$second_lincRNA <- Tx.lincRNA[match(HubCorrelations$second_lincRNA,
                                                      Tx.lincRNA[['gene_id']]), 'gene_name']
   
-  #yael wants in the table to be hubs, corscore, chr#, tx start and tx end. 
   #save(HubCorrelations, file = paste0("/Bigdata/Dropbox (Technion Dropbox)/Rina_Benel/Home/Rina/AS_linc/cardiac_diff/results/salmon10.1_results/Correlation/lincRNA_lincRNAnetwork/top1_hubs/ManuallyCuratedHubs/HubLists/HubCorrelationList", HubGeneNames[i], ".RData"))
-  # write.csv(HubCorrelations, file = paste0("/Bigdata/Dropbox (Technion Dropbox)/Rina_Benel/Home/Rina/AS_linc/cardiac_diff/results/salmon10.1_results/Correlation/lincRNA_lincRNAnetwork/top1_hubs/ManuallyCuratedHubs/HubLists/HubCorrelationList", HubGeneNames[i], ".csv"))
-  
-  #create the filtered graph, only want positive correlations
-  # graphCorr <- as_tibble(reshape_upperDiag) %>%
-  #   dplyr::filter((first_lincRNA == ManuallyCuratedHubs[i] & corScore >= 0.9) | 
-  #                   (second_lincRNA == ManuallyCuratedHubs[i] & corScore >= 0.9))  %>%
-  #   graph_from_data_frame(directed = F) 
-    
+  ################
+  #Make the Graph 
+  ###############
   graphCorr <- HubCorrelations %>% graph_from_data_frame(directed = F) 
   
+  #visualzie it 
   print(graphCorr)
   
-  #save the graph
-  #save(graphCorr, file = paste0("/Bigdata/Dropbox (Technion Dropbox)/Rina_Benel/Home/Rina/AS_linc/cardiac_diff/results/salmon10.1_results/Correlation/lincRNA_lincRNAnetwork/graphScores0.7_1/Graph", i, ".RData"))
-  
-  #U = undirected 
-  #N = names graph 
-  #the number of vertices and then the number of edges in the graph
-  #vertices are total number of nodes
-  
-  #attr: name (v/c), corScore (e/n) 
-  #v/c is the vertex level character attribute and e/n is edge level numeric attribute 
-  
-  #the entities are nodes or vertices, conenctions are edges or links
-  
-  #igraph is based on adjacency matries --> square matirx where column and rownames are the nodes of the network 
-  #Edge List: translates the two "from" and "to" columns to binary matrix Y/N connection for each of the nodes?
-  #edge list -> one column of nodes that are the source of a connection and the other column of nodes that are 
-  #targets of the connection. 
-  
-  #example with the letters and cities:
-  #source = cities where the correspondents wrote letters
-  #destination = cities where Daniel received the letters 
-  
-  #node list = all cities both from source and destination 
-  
-  #edge list can also contain other columns that describe attributes of the edge i.e. magnitude i.e. weighted 
-  
+  #check the size of the graph 
   NumEdges <- gsize(graphCorr)
   print(NumEdges)
   
-  #this is were the idea of how to label only TFs came from :) 
-  #https://stackoverflow.com/questions/47175541/plot-labels-for-specific-geom-node-text
-  
   #open tiff/pdf document so we can write to it at the end of the plot
-  #remove the margin on the plot to maximize room
-  
   #tiff(paste0("/Bigdata/Dropbox (Technion Dropbox)/Rina_Benel/Home/Rina/AS_linc/cardiac_diff/results/salmon10.1_results/Correlation/lincRNA_lincRNAnetwork/top1_hubs/ManuallyCuratedHubs/ColoredEdgesLabels", HubGeneNames[i], "_plot.tiff"))
-  #pdf(file = paste0("/Bigdata/Dropbox (Technion Dropbox)/Rina_Benel/Home/Rina/AS_linc/cardiac_diff/results/salmon10.1_results/Correlation/lincRNA_lincRNAnetwork/top1_hubs/ManuallyCuratedHubs/ColoredEdgesLabels", HubGeneNames[i], "_plot.pdf"))
-  
+
+  #remove the margin on the plot to maximize room
   par(mar = c(0,0,0,0))
-  #June 1st 2020 - ggrpah isnt working. Will use igraph instead?
-  # graph <- ggraph::ggraph(graphCorr) +
-  #   geom_edge_link(color = "grey80", edge_width = 1) +
-  #   geom_node_point(color = "black", size = 1.5) +
-  #   theme_graph() +
-  #   #labs(x = "", y = "") +
-  #   labs(title = paste0(i, " Hub of the 0.9 Correlation Network"))
-  # #to print graph
-  # print(graph)
-  #dev.off()
-  
-  
-  #add edge color and weight to the graph 
-  #check this out for color and weight 
+
+
+  #tutorial for color and weight 
   #https://stackoverflow.com/questions/49171958/igraph-edge-width-and-color-positive-and-negative-correlation
   #https://stackoverflow.com/questions/49076441/set-igraph-vertex-color-based-on-vertex-attribute-using-rcolorbrewer
+  
+  #add edge color and weight to the graph 
   #add weight as an attribute to the graph by utilizing the rounded corScore
   E(graphCorr)$weight <- round(E(graphCorr)$corScore, 2)
   #add width as well by using the weight attribute 
@@ -188,14 +137,13 @@ for(i in c(1:3)){
                                                                  seq(from = 0.89, to = .99, by = 0.02))))]
   
   
-  #add color to the graph 
+  #now add color to the graph 
   #we want the central hub to be blank, and the rest of the nodes colored according to direction (pluri/diff)
-  V(graphCorr)$color <- ifelse(V(graphCorr)$name == HubGeneNames[i], "white",  "grey80") #HubColors[i])
+  V(graphCorr)$color <- ifelse(V(graphCorr)$name == HubGeneNames[i], "white",  "grey80")
   
   #add a label to the central node and the 10 manually selected nodes
   #use gene name of the hub
-  #V(graphCorr)$label <- ifelse(V(graphCorr)$name == ManuallyCuratedHubs[i], HubGeneNames[i], "")
-  
+
   V(graphCorr)$label <- ifelse(V(graphCorr)$name %in% NodeGeneNames[[i]], V(graphCorr)$name,  "")
   #change label size so we can read it 
   V(graphCorr)$label.cex <- 1.5
