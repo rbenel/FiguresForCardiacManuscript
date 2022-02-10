@@ -46,3 +46,6 @@ Step 2: `figure2_NetworkTopologicalCharacteristics_lincRNA_lincRNA.R`
 Step 1: `figure2_XLmhg_TopAttributes.R`
 
 Step 2: `XLmhg.py` --> Python script since the package is a Python package 
+
+### Individual Hubs
+Step 1: 
