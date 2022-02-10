@@ -143,15 +143,16 @@ for(i in c(1:3)){
   
   #add a label to the central node and the 10 manually selected nodes
   #use gene name of the hub
-
   V(graphCorr)$label <- ifelse(V(graphCorr)$name %in% NodeGeneNames[[i]], V(graphCorr)$name,  "")
+  
   #change label size so we can read it 
   V(graphCorr)$label.cex <- 1.5
   
+  #change label color 
   V(graphCorr)$label.color <- "black"
-  
+  #change label font 
   V(graphCorr)$label.font <- 2
-  
+  #plot the graph 
   igraphGraph <- plot.igraph(graphCorr, vertex.size = 15, 
                       width = 8, edge.arrow.width = 2, asp = 1) #margin = -0.2
   
