@@ -97,7 +97,7 @@ stat.test <- TotalGenes.long %>%
   wilcox_test(count ~ days, ref.group = "day0") %>%
   adjust_pvalue(method = "fdr") %>%
   add_significance() 
-
+ 
 stat.test <- stat.test %>%
   mutate(y.position = c(1, 21, rep(1,5), 22, 23, 24, rep(1,4), 25.5, rep(1, 3), 26.5, 27.5))
 #filter(p.signif != "ns")
