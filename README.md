@@ -55,6 +55,8 @@ Step 1: `figure2_IndividualNetwokrsForHubs_lincRNA_lincRNA.R`
 ## Figure 3 
 
 ### Heatmap of all DE lincRNA transcripts 
+Step 1: `figure3_transcriptAnalysis_DTU.R`
+Step 2: `figure3_DElincRNAisoformExpression.R`
 
 ### GOchord plot of lincRNA transcripts 
 
