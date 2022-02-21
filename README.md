@@ -59,6 +59,7 @@ Step 1: `figure3_transcriptAnalysis_DTU.R`
 Step 2: `figure3_DElincRNAisoformExpression.R`
 
 ### GOchord plot of lincRNA transcripts 
+Step 1: `figure3_GoPlot_DEtranscripts.R`
 
 ### Table Summary of lincRNA transcript switches 
 
