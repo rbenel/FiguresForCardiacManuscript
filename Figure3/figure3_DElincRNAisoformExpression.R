@@ -3,50 +3,51 @@ library(dplyr)
 library(tidyr)
 library(viridis)
 
+############
+#Load Data
+############
 #counts in TPM
 load(file = paste0("/Bigdata/Dropbox (Technion Dropbox)/Rina_Benel/Home/Rina/AS_linc/cardiac_diff/results/salmon10.1_results/transcript_results/cts50_oneSample.RData"))
 
-#diff experessed transcripts 
+#diff expressed transcripts 
 load(file = paste0("/Bigdata/Dropbox (Technion Dropbox)/Rina_Benel/Home/Rina/AS_linc/cardiac_diff/results/salmon10.1_results/transcript_results/dex50_padjLoweredFilterN16.RData"))
 
 #read in design information 
 samples <- read.table(paste0( "/Bigdata/Dropbox (Technion Dropbox)/Rina_Benel/Home/Rina/AS_linc/cardiac_diff/data/deseq2/metadata_file.csv"), sep = ",", header = TRUE)
 samples
 
-#March 24th 2020, this dramatically changes the picture we got previously
 #updated lnc, linc, and funcLncRNA annotations
 load(file = paste0("/Bigdata/Dropbox (Technion Dropbox)/Rina_Benel/Home/Rina/Practice 18.12.16/data/Tx.linc_lncRNA_FunctlncRNA_release92TSL.RData"))
 
 #TF annotations
 TFs_annot = read.csv(paste0( "/Bigdata/Dropbox (Technion Dropbox)/Rina_Benel/Home/Rina/Practice 18.12.16/data/tf_human_annotations2018.txt"),
                      header = TRUE, sep = ",", stringsAsFactors = F)
-
-##functions###
+################
+#Load Functions
+################
 source(paste0( "/Bigdata/Dropbox (Technion Dropbox)/Rina_Benel/Home/Rina/AS_linc/cardiac_diff/scripts/flattenCorrMatirxFunction.R"))
 strp <- function(x) substr(x,1,15) #function to get rid of version numbers 
 source(paste0( "/Bigdata/Dropbox (Technion Dropbox)/Rina_Benel/Home/Rina/functions/summarySE_function.R"))
+
 #######################################
 #subsets of all the "types" of transcripts we are interested in 
 padjTx_Gene <- subset(dex.padj, dex.padj$transcript <= 0.05) #make sure that also the transcripts are the ones that overcome the 0.05
 
-#padjlncRNA <- subset(padjTx_Gene, padjTx_Gene$geneID %in% Tx.lncRNA$gene_id) #look at lncRNA
-
+#get only lincRNA 
 padjlincRNA <- subset(padjTx_Gene, padjTx_Gene$geneID %in% Tx.lincRNA$gene_id) #look at lincRNA
 
-#padjTF <- subset(padjTx_Gene, padjTx_Gene$geneID %in% TFs_annot$ensembl_gene_id)
-
 ########################################################
-rownames(cts) <- strp(rownames(cts)) #remove version numbers 
+rownames(cts) <- strp(rownames(cts)) #remove version numbers of count data
 
 #read in design information 
 samples <- read.table(paste0("/Bigdata/Dropbox (Technion Dropbox)/Rina_Benel/Home/Rina/AS_linc/cardiac_diff/data/deseq2/metadata_file.csv"), sep = ",", header = TRUE)
 
 samples_name <- as.list(paste0(samples$day, samples$replicate))
 
-##############################
-##### DATA MANIPULATION ######
-##############################
-###turn data into avgs of the three replicates####
+###################
+#DATA MANIPULATION 
+###################
+#turn data into avgs of the three replicates
 colnames(cts) <- samples_name
 
 cts2 <- tibble::rownames_to_column(as.data.frame(cts), "id")
@@ -65,21 +66,20 @@ clean.counts <-  as.data.frame(tibble::column_to_rownames(tidy.wide, var = "id")
 clean.counts <- clean.counts[c("day0", "day1", "day2", "day3", "day4", "day5", "day6",
                                "day8", "day15", "day30", "day60")] #to ensure we have the correct order of columns
 
-##################################################
-#WHEN TRYING TO REPRODUCE RESULTS - READ THIS!!!!!
-##################################################
-##in the initial plots didnt do this, this is why they are different
-###but in order to use downstream analysis need to convert to log2 scale 
+#convert to log2 for downstream analysis 
 clean.counts <- log2(clean.counts + 1) 
-#get counts for DE transcripts
 
-#on July 1st 2019, yael wants me to temp leave out the transcripts without a pair in the clustering,
-#but leave in the 6 genes that are DE without partners...
-
-#March 23rd 2020, these are all of the updated lincRNA transcripts that are DE 
+################################
+#Get counts for DE transcripts
+###############################
+#counts for updated lincRNA transcripts that are DE 
 padjCounts <- subset(clean.counts, rownames(clean.counts) %in% padjlincRNA$txID) #ALL DE TRANSCRIPT 
 
-#heatmap for the relvant transcripts 
+
+###########
+#Heatmap
+##########
+#heatmap for the relevant transcripts 
 num_clusters <- 3
 heatmap <- pheatmap::pheatmap(padjCounts,
                               #kmeans_k = 6, #The function also allows to aggregate the rows using kmeans clustering. This is advisable if number of rows is so big that R cannot handle their hierarchical clustering anymore, 
@@ -98,11 +98,10 @@ heatmap <- pheatmap::pheatmap(padjCounts,
 heatmap.cut <- cutree(heatmap$tree_row, k = num_clusters)
 #choose colors for the heatmap 
 my.colors <- viridis::magma(20)
-#my.colors <- my.colors[c(12, 16, 6, 8, 18)] #took out 4 #yael wants these colors to be the same as the goChord plot
 
-my.colors <- my.colors[c(12, 16, 6)] #for three clusters
+#use the large vector to select 3 colors var apart from each other 
+my.colors <- my.colors[c(12, 16, 6)] 
 
-#my.colors <- my.colors[c(4,5,3,1,2)] #only need this for TF figure
 
 #annotated df of rownames + name of cluster 
 annot.df <- data.frame(cluster = (paste("cluster", heatmap.cut, sep = "_")))
@@ -112,7 +111,8 @@ rownames(annot.df) <- rownames(padjCounts)
 names(my.colors) <- unique(annot.df$cluster)
 my.colors <- list(cluster = my.colors)
 
-#redraw heatmap
+
+#redraw heatmap with annotations and colors 
 heatmap.colors <- pheatmap::pheatmap(padjCounts,
                                      show_rownames  = F, 
                                      cluster_cols = F,
@@ -129,12 +129,12 @@ heatmap.colors <- pheatmap::pheatmap(padjCounts,
                                      cex = 1,
                                      cutree_rows = num_clusters)
 
-
-#make dataframe with counts and clusters 
-#clustCounts <- merge(annot.df, padjCounts, by = "row.names")
-########################################################################################################
+####################
+#DF of the clusters
+####################
 #add more info to the annot.df 
 annot.df <- merge(annot.df, padjlincRNA, by.x = "row.names", by.y = "txID")
+
 #if we turn the cluster column into a character 
 #than we can sort by order and maybe we wont need all of the gsub?
 #this seems to work
@@ -142,7 +142,7 @@ annot.df$cluster <- as.character(annot.df$cluster)
 annot.df <- annot.df[order(annot.df$cluster), ]
 names(annot.df)[names(annot.df) == "Row.names"] <- "txID"
 
-#May 11th 2020, this was added bec if we want to study pluri to diff we cant use also the "non DTU" transcripts.
+
 #rerunning August 2021 because this was saved as .R and not .RData#
 #save(annot.df, file = paste0("/Bigdata/Dropbox (Technion Dropbox)/Rina_Benel/Home/Rina/AS_linc/cardiac_diff/results/salmon10.1_results/transcript_results/March20_OnlyDTUtranscriptsAnnotN16.df.RData"))
 #write.csv(annot.df, file = paste0("/Bigdata/Dropbox (Technion Dropbox)/Rina_Benel/Home/Rina/AS_linc/cardiac_diff/results/salmon10.1_results/transcript_results/March20_OnlyDTUtranscriptsAnnotN16.df.csv"))
@@ -228,91 +228,10 @@ finalAnnot.df <- rbind(annot.df, dex.padjDTUgenes)
 #a lowered filter was also ran and saved
 finalAnnot.df$GeneName <- Tx.lncRNA[match(finalAnnot.df$geneID, Tx.lncRNA[["gene_id"]]), "gene_name"]
 
-#re ran august 2021 to save as .Rdata and not .R
+#save output as .Rdata and not .R
 #save(finalAnnot.df, file = paste0("/Bigdata/Dropbox (Technion Dropbox)/Rina_Benel/Home/Rina/AS_linc/cardiac_diff/results/salmon10.1_results/transcript_results/March20_OnlyDTUtranscriptsAnnot.dfLoweredFilterN16.RData"))
 #write.csv(annot.df, file = paste0("/Bigdata/Dropbox (Technion Dropbox)/Rina_Benel/Home/Rina/AS_linc/cardiac_diff/results/salmon10.1_results/transcript_results/March20_OnlyDTUtranscriptsAnnot.dfLoweredFilterN16.csv"))
 
-#sep 2021 bec decided to take cluster 4 out of analysis
 #for consistency purposes add this column to annot.df too
 annot.df$GeneName <- Tx.lncRNA[match(annot.df$geneID, Tx.lncRNA[["gene_id"]]), "gene_name"]
 #save(annot.df, file = paste0("/Bigdata/Dropbox (Technion Dropbox)/Rina_Benel/Home/Rina/AS_linc/cardiac_diff/results/salmon10.1_results/transcript_results/March20_OnlyDTUtranscriptsAnnotN16WithGeneName.df.RData"))
-
-###############################################################
-#Heatmap of other transcripts from "single transcript genes"
-###############################################################
-#Sept 2021, get other transcripts from single transcripts
-OneTranscriptCounts <- subset(clean.counts, rownames(clean.counts) %in% dex.padjDTUgenes$txID) #the non dtu transcripts of the single dtu transcripts 
-
-#heatmap for the relevant transcripts 
-heatmap <- pheatmap::pheatmap(OneTranscriptCounts,
-                              #kmeans_k = 6, #The function also allows to aggregate the rows using kmeans clustering. This is advisable if number of rows is so big that R cannot handle their hierarchical clustering anymore, 
-                              show_rownames  = F, 
-                              cluster_cols = F,
-                              clustering_distance_rows = "correlation", 
-                              scale = "row",
-                              color = colorRampPalette( rev(RColorBrewer::brewer.pal(10, "RdBu")))(256),
-                              border_color = NA,
-                              treeheight_row = 0,
-                              angle_col = 45, #tilts the col labels
-                              clustering_method = "complete")
-
-heatmap
-#####################################
-#Or yael wants line plots - Sep 2021
-#####################################
-#need different input for lineplots
-#get the sd and avg for each id so we can use error bars on lineplots 
-new.df <- cts2_long %>% group_by(id, sample) %>% 
-  summarize(sd = sd(count), count = mean(count))
-
-#bec sample is a factor, we need to order it manually so it isnt alphapbetical.
-new.df$sample <-factor(new.df$sample, levels=c("day0", "day1", "day2", "day3", "day4", "day5", "day6",
-                                       "day8", "day15", "day30", "day60"))
-
-#subset for relevant transcripts 
-onlyOneTranscriptCountsSD <- subset(new.df, new.df$id %in% dex.padjDTUgenes$txID)
-
-#maybe try to color by Gene name?
-onlyOneTranscriptCountsSD$GeneName <- dex.padjDTUgenes[match(onlyOneTranscriptCountsSD$id, dex.padjDTUgenes[["txID"]]), "GeneName"]
-
-#added sept 2021
-#can remove the loop and just plot everything together using the "geneName" for coloring
-for(i in unique(onlyOneTranscriptCountsSD$GeneName)) {
-  
-      singleGene <- subset(onlyOneTranscriptCountsSD, onlyOneTranscriptCountsSD$GeneName == i)
-      
-      #line graphs
-      df.plot <- ggplot(singleGene, aes(x=sample, y=count, group=id)) + #colour=GeneName
-        geom_errorbar(aes(ymin=count-sd, ymax=count+sd), width=.1) + #, position=pd) +
-        geom_line(size=2, color = "grey") +
-        geom_point(size=2.5, color = "grey") +
-        
-        #legend
-        ggtitle(i) + theme(plot.title = element_text(hjust = 0.5)) +
-        theme(plot.title = element_text(size = 24, face = "bold")) +
-        #theme(legend.title = element_blank()) +
-        theme(legend.text = element_text(colour="black", size = 16, face = "plain")) +
-        theme( axis.title.x = element_text(family="sans",size = 16, face="bold", hjust=0.5, vjust=-0.5),
-               axis.title.y = element_text(family="sans",size = 16, angle=90, face="bold", hjust=0.5, vjust=1)) +
-        theme( axis.text.x = element_text(family = "sans",size = 18, angle=45, face='plain', colour="#353535",   hjust=1, vjust=1) ) +
-        theme( axis.text.y = element_text(family = "sans",size = 18, face='plain', colour="#353535",  vjust=0.5) ) +
-        theme(axis.line.x = element_line(color="black", size = 0.5),
-              axis.line.y = element_line(color="black", size = 0.5)) +
-        theme(legend.background = element_rect()) + 
-        theme(legend.position="top") +
-        theme(panel.border = element_blank(), panel.grid.major = element_blank(),
-              panel.grid.minor = element_blank(),  panel.background = element_blank()) +
-        labs(y = "Expression Levels (log2)", x = "") +
-        scale_x_discrete(labels = c("day0" = "D0", "day1" = "D1", "day2" = "D2",
-                                    "day3" = "D3", "day4" = "D4", "day5" = "D5",
-                                    "day6" = "D6", "day8" = "D8", "day15" = "D15",
-                                    "day30" = "D30", "day60" = "D60"))
-      
-      print(df.plot)
-    
-      ggsave(file = paste0("/Bigdata/Dropbox (Technion Dropbox)/Rina_Benel/Home/Rina/AS_linc/cardiac_diff/results/salmon10.1_results/transcript_results/TxPlots_lincRNA/lineplots/LinePlotsN16Aug2021/IndividualNonDTUplot/", i, ".tiff"),
-                           width = 25, height = 20, units = "cm", dpi = 600)
-      
-      dev.off()
-      
-}
