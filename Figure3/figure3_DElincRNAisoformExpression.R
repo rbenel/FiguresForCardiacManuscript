@@ -19,9 +19,6 @@ samples
 #updated lnc, linc, and funcLncRNA annotations
 load(file = paste0("/Bigdata/Dropbox (Technion Dropbox)/Rina_Benel/Home/Rina/Practice 18.12.16/data/Tx.linc_lncRNA_FunctlncRNA_release92TSL.RData"))
 
-#TF annotations
-TFs_annot = read.csv(paste0( "/Bigdata/Dropbox (Technion Dropbox)/Rina_Benel/Home/Rina/Practice 18.12.16/data/tf_human_annotations2018.txt"),
-                     header = TRUE, sep = ",", stringsAsFactors = F)
 ################
 #Load Functions
 ################
